@@ -1,0 +1,67 @@
+# Checks the setups and builds and tests every unit for both boards, on every push and pull
+# request. On main it also publishes the unit files and units.json as the release
+# "units-latest", where metalhead.link and the players pick them up.
+name: build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: write     # the units-latest release, on main only
+
+env:
+  AARCH64_TOOLCHAIN: arm-gnu-toolchain-15.2.rel1-x86_64-aarch64-none-elf
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the setups
+        run: python3 tools/check.py
+
+      # The SDK: the sdk/ submodule if the band added one, else a checkout. SDK_TOKEN (a
+      # fine-grained token that reads metalhead-link/metalhead-unit-sdk) if that repository is private.
+      - name: Unit SDK
+        if: hashFiles('sdk/unit.mk') == ''
+        uses: actions/checkout@v4
+        with:
+          repository: metalhead-link/metalhead-unit-sdk
+          path: sdk
+          token: ${{ secrets.SDK_TOKEN || github.token }}
+
+      - name: BeagleBone Black toolchain
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gcc-arm-none-eabi libnewlib-arm-none-eabi
+
+      - name: Raspberry Pi 5 toolchain (cached)
+        id: aarch64
+        uses: actions/cache@v4
+        with:
+          path: ~/${{ env.AARCH64_TOOLCHAIN }}
+          key: ${{ env.AARCH64_TOOLCHAIN }}
+      - if: steps.aarch64.outputs.cache-hit != 'true'
+        run: curl -sSfL "https://developer.arm.com/-/media/Files/downloads/gnu/15.2.rel1/binrel/$AARCH64_TOOLCHAIN.tar.xz" | tar -xJ -C ~
+      - run: echo "$HOME/$AARCH64_TOOLCHAIN/bin" >> "$GITHUB_PATH"
+
+      - name: Test the units
+        run: make -C units test
+
+      - name: Build the units
+        run: make -C units dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: units-${{ github.sha }}
+          path: dist/
+
+      - name: Publish units-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view units-latest >/dev/null 2>&1 || \
+            gh release create units-latest --title "Units (latest main)" --notes "Built from main by the build workflow; see units.json."
+          gh release upload units-latest dist/units.json dist/*.unt --clobber
+          git tag -f units-latest && git push -f origin units-latest

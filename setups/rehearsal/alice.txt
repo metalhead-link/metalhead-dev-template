@@ -1,0 +1,26 @@
+# Alice, rehearsal: guitar → tremolo → reverb, a looper on the side
+
+[units]
+trem   Tremolo                # units/tremolo (/units/Tremolo.unt)
+verb   YAFR                   # Essentials
+looper Looper
+
+[audioroutes]
+.Scarlett_2i2_USB:1 trem:1 1.0
+.Scarlett_2i2_USB:1 trem:2 1.0
+trem:1 verb:1 1.0
+verb:1 .Scarlett_2i2_USB:1 1.0
+verb:2 .Scarlett_2i2_USB:2 1.0
+.Scarlett_2i2_USB:1 looper:1 1.0
+looper:1 .Scarlett_2i2_USB:1 1.0
+looper:1 .Scarlett_2i2_USB:2 1.0
+
+# Values are 0..127, as a MIDI controller sends, spread over each parameter's range:
+# trem:division 64 is 1/8 (free, 1/4, 1/8, 1/16, 1/8T), trem:depth 100 is about 80 %.
+[presets]
+startup trem:depth    0
+startup verb:wetlevel 30
+verse   trem:depth    100
+verse   trem:division 64
+solo    trem:depth    0
+solo    verb:wetlevel 90
