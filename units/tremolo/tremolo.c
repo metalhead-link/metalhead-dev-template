@@ -181,7 +181,7 @@ static int paramTextToValue(uint32_t id, const char * text, double * value) {
 static const UnitPlugin plugin = {
     .size = sizeof(UnitPlugin),
     .name = "Tremolo",
-    .vendor = "our band",
+    .vendor = "my metalhead",
     .version = "1.0",
     .description = "Tremolo for a stereo pair, free or locked to the timeline",
     .createInstance = createInstance,

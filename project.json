@@ -1,0 +1,6 @@
+{
+  "name": "My metalhead",
+  "players": {
+    "me": { "name": "Me", "board": "rpi5", "plays": "guitar, loops" }
+  }
+}

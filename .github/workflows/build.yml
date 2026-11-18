@@ -1,6 +1,6 @@
-# Checks the setups and builds and tests every unit for both boards, on every push and pull
-# request. On main it also publishes the unit files and units.json as the release
-# "units-latest", where metalhead.link and the players pick them up.
+# Checks the setups and builds and tests every unit for both CPUs (arm32: the BeagleBone Black;
+# aarch64: the Raspberry Pi 4 and 5), on every push and pull request. On main it also publishes
+# the unit files and units.json as the release "units-latest".
 name: build
 
 on:
@@ -17,25 +17,20 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
+      # With the unit SDK, the sdk/ submodule. If that repository is private, a repository
+      # secret SDK_TOKEN: a fine-grained token that can read metalhead-link/metalhead-unit-sdk.
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.SDK_TOKEN || github.token }}
 
       - name: Check the setups
         run: python3 tools/check.py
 
-      # The SDK: the sdk/ submodule if the band added one, else a checkout. SDK_TOKEN (a
-      # fine-grained token that reads metalhead-link/metalhead-unit-sdk) if that repository is private.
-      - name: Unit SDK
-        if: hashFiles('sdk/unit.mk') == ''
-        uses: actions/checkout@v4
-        with:
-          repository: metalhead-link/metalhead-unit-sdk
-          path: sdk
-          token: ${{ secrets.SDK_TOKEN || github.token }}
-
       - name: BeagleBone Black toolchain
         run: sudo apt-get update -qq && sudo apt-get install -y -qq gcc-arm-none-eabi libnewlib-arm-none-eabi
 
-      - name: Raspberry Pi 5 toolchain (cached)
+      - name: Raspberry Pi toolchain (cached)
         id: aarch64
         uses: actions/cache@v4
         with:

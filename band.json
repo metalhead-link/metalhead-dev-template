@@ -1,7 +1,0 @@
-{
-  "name": "Our band",
-  "players": {
-    "alice": { "name": "Alice", "board": "rpi5", "plays": "guitar, loops" },
-    "bob": { "name": "Bob", "board": "bbb", "plays": "drums, click" }
-  }
-}

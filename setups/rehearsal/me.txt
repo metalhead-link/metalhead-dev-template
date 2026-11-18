@@ -1,4 +1,4 @@
-# Alice, rehearsal: guitar → tremolo → reverb, a looper on the side
+# Rehearsal: guitar → tremolo → reverb, a looper on the side
 
 [units]
 trem   Tremolo                # units/tremolo (/units/Tremolo.unt)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Checks every setup (setups/<setup>/<player>.txt) the way the firmware's config parser would,
-plus what only this repository knows: the players in band.json and our units' plugins and
+plus what only this repository knows: the players in project.json and our units' plugins and
 parameters. Prints file:line: message for each problem; exits 1 if there was one.
 
     python3 tools/check.py [file ...]
@@ -43,7 +43,7 @@ class Checker:
 
     def check(self, path):
         if path.stem not in self.players:
-            self.error(path, 0, f"{path.stem} isn't a player in band.json")
+            self.error(path, 0, f"{path.stem} isn't a player in project.json")
         units, buses, presets, recalled = {}, set(), set(), []
         on_strip = set()
         section = None
@@ -171,8 +171,10 @@ class Checker:
 
 
 def main(argv):
-    band = json.loads((ROOT / "band.json").read_text())
-    checker = Checker(set(band.get("players", {})), our_plugins())
+    project = ROOT / "project.json"
+    if not project.exists():
+        project = ROOT / "band.json"        # a repository from before the rename
+    checker = Checker(set(json.loads(project.read_text()).get("players", {})), our_plugins())
     files = [Path(a).resolve() for a in argv] or sorted((ROOT / "setups").glob("*/*.txt"))
     for f in files:
         checker.check(f)
